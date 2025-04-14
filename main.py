@@ -1,12 +1,15 @@
-from http.client import HTTPException
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from pydantic import BaseModel
-import pyttsx3
-from fastapi.responses import FileResponse
-from gtts import gTTS
 import os
 import shutil
 from datetime import datetime
+
+from http.client import HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException
+
+from pydantic import BaseModel
+
+from fastapi.responses import FileResponse
+from gtts import gTTS
+
 import speech_recognition as sr
 
 app = FastAPI()
@@ -14,33 +17,19 @@ app = FastAPI()
 class Query(BaseModel):
     text: str
 
-# get text response
-@app.post("/submit-question")
+@app.post("/text-to-text")
 def get_response(query: Query):
     response = f"Your memory bot says: {query.text}"
     return {"text": response}
 
-#get mp3 from text
-
-@app.post("/tts_pyttsx3")
-def tts_pyttsx3(query: Query):
-    print(query.text)
-    engine = pyttsx3.init()
-    # engine.say(query.text)
-    # engine.runAndWait()
-    engine.save_to_file(query.text, "response_temp.mp3")
-    engine.runAndWait()
-    # return {"file": "response.mp3"}
-    return FileResponse("response_temp.mp3", media_type='audio/mpeg')
-
-@app.post("/tts_gtts")
+@app.post("/text-to-speech")
 def tts_gtts(query: Query):
     print(query.text)
     tts = gTTS(query.text, lang='en')
-    tts.save("response_gtts.mp3")
-    return FileResponse("response_gtts.mp3", media_type='audio/mpeg')
+    tts.save("response.mp3")
+    return FileResponse("response.mp3", media_type='audio/mpeg')
 
-@app.post("/stt")
+@app.post("/speech-to-text")
 def stt(file: UploadFile = File(...)):
     ts = datetime.now().strftime("%Y-%m-%d@%H-%M-%S")
     if file.content_type != "audio/mpeg":
