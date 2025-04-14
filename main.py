@@ -6,6 +6,8 @@ from fastapi.responses import FileResponse
 from gtts import gTTS
 import os
 import shutil
+from datetime import datetime
+import speech_recognition as sr
 
 app = FastAPI()
 
@@ -40,18 +42,21 @@ def tts_gtts(query: Query):
 
 @app.post("/stt")
 def stt(file: UploadFile = File(...)):
-    #print(query.text)
+    ts = datetime.now().strftime("%Y-%m-%d@%H-%M-%S")
     if file.content_type != "audio/mpeg":
-        raise HTTPException(status_code=400, detail="Invalid file type. Only MP3 files are allowed.")
+        raise HTTPException(status_code=400, detail="Invalid file type.")
     try:
-        # Create a directory if it doesn't exist
-        upload_dir = "uploaded_mp3s"
+        upload_dir = "uploaded_files"
         os.makedirs(upload_dir, exist_ok=True)
-
-        # Save the file
-        file_path = os.path.join(upload_dir, file.filename)
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        return {"message": f"Successfully uploaded and saved {file.filename} to {file_path}"}
+        file_path = os.path.join(upload_dir, ts+"_"+file.filename)
+        with open(file_path, "wb") as buffer: shutil.copyfileobj(file.file, buffer)
+        recognizer = sr.Recognizer()
+        with sr.AudioFile(file_path) as source: audio = recognizer.record(source)
+        text = recognizer.recognize_google(audio, language="fr-FR")
+        return {"message": text}
+    except sr.UnknownValueError:
+            print("Impossible de comprendre l'audio.")
+    except sr.RequestError as e:
+            print("Erreur de requête Google:", e)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error saving file: {e}")
