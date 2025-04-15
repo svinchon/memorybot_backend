@@ -78,7 +78,7 @@ curl_get_mp3:
 	 -d '{"text": "Hello MemoryBot"}' \
 	 --output response_output.mp3
 
-curl_test:
-	curl -X POST http://localhost:8000/stt \
-	-H "Content-Type: multipart/form-data" \
-	-F "file=@audio.wav;type=audio/mpeg"
+curl_ask:
+	curl -X POST http://localhost:8000/ask \
+	-H "Content-Type: application/json" \
+	-d '{"text": "Que sait tu de moi ?"}' 

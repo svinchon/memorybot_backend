@@ -12,13 +12,28 @@ from gtts import gTTS
 
 import speech_recognition as sr
 
+from memories_management.memory_store import MemoryStore
+from memories_management.chatbot import Chatbot
+from datetime import datetime
+
 app = FastAPI()
 
 class Query(BaseModel):
     text: str
 
+store = MemoryStore()
+chatbot = Chatbot()
+
+@app.post("/ask")
+def ask(query: Query):
+    response = "je sais pas"
+    question = query.text
+    memories = store.search_memories(query.text)
+    response = chatbot.ask(question, memories)
+    return {"text": response}
+
 @app.post("/text-to-text")
-def get_response(query: Query):
+def ttt(query: Query):
     response = f"Your memory bot says: {query.text}"
     return {"text": response}
 
@@ -49,3 +64,10 @@ def stt(file: UploadFile = File(...)):
             print("Erreur de requête Google:", e)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error saving file: {e}")
+
+if __name__ == "__main__":
+    # store.add_memory("Je suis un développeur.", "2023-10-01")
+    # store.add_memory("J'aime la programmation.", "2023-10-02")
+    # store.add_memory("Je vais au cinéma.", "2023-10-03")
+    q = Query(text="qui suis-je ?")
+    print(ask(q))

@@ -1,0 +1,17 @@
+[
+  {
+    "id": 0,
+    "text": "Je suis un développeur.",
+    "date": "2023-10-01"
+  },
+  {
+    "id": 1,
+    "text": "J'aime la programmation.",
+    "date": "2023-10-02"
+  },
+  {
+    "id": 2,
+    "text": "Je vais au cinéma.",
+    "date": "2023-10-03"
+  }
+]
