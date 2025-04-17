@@ -4,6 +4,7 @@ from datetime import datetime
 
 from http.client import HTTPException
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse
 
 from pydantic import BaseModel
 
@@ -30,19 +31,27 @@ def ask(query: Query):
     question = query.text
     memories = store.search_memories(query.text)
     response = chatbot.ask(question, memories)
-    return {"text": response}
+    responseJson = {"text": response}
+    return JSONResponse(
+        content=responseJson,
+        media_type="application/json; charset=utf-8"
+    )
 
-@app.post("/text-to-text")
-def ttt(query: Query):
-    response = f"Your memory bot says: {query.text}"
-    return {"text": response}
+@app.post("/store")
+def add_memory(query: Query):
+    ts = datetime.now().strftime("%Y-%m-%d")
+    store.add_memory(query.text, ts)
+    return {"text": "Memory added successfully!"}
 
 @app.post("/text-to-speech")
 def tts_gtts(query: Query):
-    print(query.text)
-    tts = gTTS(query.text, lang='en')
-    tts.save("response.mp3")
-    return FileResponse("response.mp3", media_type='audio/mpeg')
+    ts = datetime.now().strftime("%Y-%m-%d@%H-%M-%S")
+    upload_dir = "uploaded_files"
+    os.makedirs(upload_dir, exist_ok=True)
+    file_path = os.path.join(upload_dir, f"response_{ts}.mp3")
+    tts = gTTS(query.text, lang='fr')
+    tts.save(file_path)
+    return FileResponse(file_path, media_type='audio/mpeg')
 
 @app.post("/speech-to-text")
 def stt(file: UploadFile = File(...)):
@@ -52,12 +61,14 @@ def stt(file: UploadFile = File(...)):
     try:
         upload_dir = "uploaded_files"
         os.makedirs(upload_dir, exist_ok=True)
-        file_path = os.path.join(upload_dir, ts+"_"+file.filename)
+        file_ext = os.path.splitext(file.filename)[1]
+        file_filename = os.path.splitext(file.filename)[0]
+        file_path = os.path.join(upload_dir, f"{file_filename}_{ts}.{file_ext}")
         with open(file_path, "wb") as buffer: shutil.copyfileobj(file.file, buffer)
         recognizer = sr.Recognizer()
         with sr.AudioFile(file_path) as source: audio = recognizer.record(source)
         text = recognizer.recognize_google(audio, language="fr-FR")
-        return {"message": text}
+        return {"text": text}
     except sr.UnknownValueError:
             print("Impossible de comprendre l'audio.")
     except sr.RequestError as e:
@@ -66,8 +77,6 @@ def stt(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Error saving file: {e}")
 
 if __name__ == "__main__":
-    # store.add_memory("Je suis un développeur.", "2023-10-01")
-    # store.add_memory("J'aime la programmation.", "2023-10-02")
-    # store.add_memory("Je vais au cinéma.", "2023-10-03")
+    # store.add_memory("text", "2023-10-01")
     q = Query(text="qui suis-je ?")
     print(ask(q))

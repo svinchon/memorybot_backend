@@ -7,8 +7,6 @@ load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-#print("env: "+str(os.getenv("OPENAI_API_KEY")))
-
 class Chatbot:
 
   def __init__(self, model="gpt-3.5-turbo"):
@@ -27,7 +25,6 @@ class Chatbot:
       Réponds de manière claire, bienveillante, et uniquement
       en te basant sur ces souvenirs.
     """
-    # response = "caca"
     response = client.chat.completions.create(
       model=self.model,
       messages=[
