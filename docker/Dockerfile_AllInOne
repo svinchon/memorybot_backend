@@ -1,0 +1,21 @@
+# single step dockerfile
+
+FROM python:3.12-slim-bullseye
+
+# needed to install packages
+COPY requirements.txt app/requirements.txt
+
+# copy python files
+COPY .env /app/.env
+COPY api.py /app/api.py
+COPY memories_management/ /app/memories_management/
+
+# move to work directory
+WORKDIR /app
+
+# install needed packages
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+# run uvicorn server with port from environment variable
+CMD ["sh", "-c", "uvicorn api:fast_api_app --host 0.0.0.0 --port ${PORT:-8000}"]

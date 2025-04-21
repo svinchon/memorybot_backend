@@ -2,14 +2,25 @@
 # variables
 ################################################################################
 
+# pyenv env
 ENVIRONMENT=backend
+# region
+GCP_REG=
+# project id
+GCP_PROJ_ID
+# image
+IM_NAME=secret-box
+# artifact registry
+GCP_AR=
+# memory
+GAR_MEM=
 
 ################################################################################
 # unicorn
 ################################################################################
 
 uvicorn_run_service:
-	uvicorn main:app --host 0.0.0.0 --port 8000
+	uvicorn api:fast_api_app --host 0.0.0.0 --port 8000
 
 ################################################################################
 # pyenv
@@ -50,20 +61,6 @@ shell_restart:
 	exec "$SHELL"
 
 ################################################################################
-# python
-################################################################################
-
-python_install_libs:
-	pip install fastapi
-	pip install pyttsx3
-	pip install uvicorn
-	pip install gtts
-	pip install python-multipart
-
-python_run_main:
-	python main.py
-
-################################################################################
 # curl
 ################################################################################
 
@@ -81,4 +78,85 @@ curl_get_mp3:
 curl_ask:
 	curl -X POST http://localhost:8000/ask \
 	-H "Content-Type: application/json" \
-	-d '{"text": "Que sait tu de moi ?"}' 
+	-d '{"text": "Que sait tu de moi ?"}'
+
+curl_isalive_check:
+	curl http://0.0.0.0:8000
+
+################################################################################
+# Docker
+################################################################################
+
+### local
+
+docker_local_build_image_arm:
+	docker build \
+	-f "docker/Dockerfile_AllInOne" \
+	--tag=${IM_NAME}:dev \
+	.
+
+docker_local_start_interactive:
+	docker run \
+	-it \
+	-e PORT=8000 \
+	-p 8000:8000 \
+	${IM_NAME}:dev \
+	bash
+
+docker_local_start:
+	docker run \
+	-e "PORT=8000" \
+	-p 8000:8000 \
+	${IM_NAME}:dev
+
+docker_local_build_image_amd64:
+	docker build \
+	-f "docker/Dockerfile_AllInOne" \
+	--platform linux/amd64 \
+	--tag=${IM_NAME}:dev \
+	.
+
+### GCP
+
+docker_build_api_machine_amd64_prod:
+	docker build \
+	--platform linux/amd64 \
+	--tag=${GCP_REG}-docker.pkg.dev/${GCP_PROJ_ID}/${GCP_AR}/${IM_NAME}:prod \
+	.
+
+docker_push_prod:
+	docker push \
+	${GCP_REG}-docker.pkg.dev/${GCP_PROJ_ID}/${GCP_AR}/${IM_NAME}:prod
+
+docker_run_prod:
+	gcloud run deploy \
+	--image ${GCP_REG}-docker.pkg.dev/${GCP_PROJ_ID}/${GCP_AR}/${IM_NAME}:prod \
+	--memory ${GAR_MEM} \
+	--region ${GCP_REG}
+
+# GCP CONFIG ###################################################################
+
+gcp_auth_configure_docker:
+	gcloud auth configure-docker ${GCP_REG}-docker.pkg.dev
+
+gcp_ar_create_repo:
+	gcloud artifacts repositories create ${GCP_AR} \
+	--repository-format=docker \
+	--location=${GCP_REG} \
+	--description="tiab repo"
+
+# GCP BUILD, PUSH, DEPLOY ######################################################
+
+# gcp_docker_build:
+# 	docker build \
+# 	--platform linux/amd64 \
+# 	-t ${GCP_REG}-docker.pkg.dev/${GCP_PROJ_ID}/${GCP_AR}/${GCP_AR_IMAGE}:prod .
+
+# gcp_docker_push:
+# 	docker push ${GCP_REG}-docker.pkg.dev/${GCP_PROJ_ID}/${GCP_AR}/${GCP_AR_IMAGE}:prod
+
+# gcp_cloud_run_deploy:
+# 	gcloud run deploy \
+# 	--image ${GCP_REG}-docker.pkg.dev/${GCP_PROJ_ID}/${GCP_AR}/${GCP_AR_IMAGE}:prod \
+# 	--memory ${GAR_MEM} \
+# 	--region ${GCP_REG}

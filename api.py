@@ -17,7 +17,7 @@ from memories_management.memory_store import MemoryStore
 from memories_management.chatbot import Chatbot
 from datetime import datetime
 
-app = FastAPI()
+fast_api_app = FastAPI()
 
 class Query(BaseModel):
     text: str
@@ -25,7 +25,11 @@ class Query(BaseModel):
 store = MemoryStore()
 chatbot = Chatbot()
 
-@app.post("/ask")
+@fast_api_app.get("/")
+def read_root():
+    return {"message": "container ok"}
+
+@fast_api_app.post("/ask")
 def ask(query: Query):
     response = "je sais pas"
     question = query.text
@@ -37,13 +41,13 @@ def ask(query: Query):
         media_type="application/json; charset=utf-8"
     )
 
-@app.post("/store")
+@fast_api_app.post("/store")
 def add_memory(query: Query):
     ts = datetime.now().strftime("%Y-%m-%d")
     store.add_memory(query.text, ts)
     return {"text": "Memory added successfully!"}
 
-@app.post("/text-to-speech")
+@fast_api_app.post("/text-to-speech")
 def tts_gtts(query: Query):
     ts = datetime.now().strftime("%Y-%m-%d@%H-%M-%S")
     upload_dir = "uploaded_files"
@@ -53,7 +57,7 @@ def tts_gtts(query: Query):
     tts.save(file_path)
     return FileResponse(file_path, media_type='audio/mpeg')
 
-@app.post("/speech-to-text")
+@fast_api_app.post("/speech-to-text")
 def stt(file: UploadFile = File(...)):
     ts = datetime.now().strftime("%Y-%m-%d@%H-%M-%S")
     if file.content_type != "audio/mpeg":

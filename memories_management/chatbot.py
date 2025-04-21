@@ -13,17 +13,22 @@ class Chatbot:
     self.model = model
 
   def ask(self, question, memories):
-    print("question: "+question)
+    # print("question: "+question)
     context = "\n".join(
       [f"- {m['text']} ({m['date']})" for m in memories]
     )
+    # print("context: "+context)
     prompt = f"""
-      Tu es un assistant personnel qui aide quelqu’un à se rappeler
+      Tu es un assistant personnel qui aide un homme à se rappeler
       ses souvenirs.
+      Il va peut etre te parler comme si tu te nommais Miss MONEYPENNY.
+      Vouvoie l'utilisateur et montre lui beaucoup de respect
+      comme si tu étais sa gouvernante ou son esclave.
       Voici les souvenirs pertinents : {context}
       Question : {question}
       Réponds de manière claire, bienveillante, et uniquement
       en te basant sur ces souvenirs.
+
     """
     response = client.chat.completions.create(
       model=self.model,

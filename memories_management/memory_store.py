@@ -6,7 +6,7 @@ from memories_management.embedder import Embedder # vectorization lib
 
 class MemoryStore:
 
-    def __init__(self, json_path="data/memories.json", index_path="data/index.faiss"):
+    def __init__(self, json_path="memories_management/data/memories.json", index_path="memories_management/data/index.faiss"):
         self.json_path = json_path
         self.index_path = index_path
         self.embedder = Embedder()
@@ -52,7 +52,7 @@ class MemoryStore:
             self.id_map.append(mem["id"])
         self.index.add(np.array(vectors).astype("float32"))
 
-    def search_memories(self, query, k=3):
+    def search_memories(self, query, k=10):
         vec = self.embedder.embed(query)
         D, I = self.index.search(np.array([vec]).astype("float32"), k)
         return [self.memories[self.id_map[i]] for i in I[0]]

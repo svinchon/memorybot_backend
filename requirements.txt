@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+gtts
+sentence-transformers
+OpenAI
+faiss-cpu
+np
+SpeechRecognition
+pydantic
+dotenv
+hf_xet

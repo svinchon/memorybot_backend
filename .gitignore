@@ -118,6 +118,9 @@ __pypackages__/
 
 # app recordings
 *.mp3
+*.wav
 
 # IA
 *.gguf
+
+ignore/
