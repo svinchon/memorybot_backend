@@ -5,15 +5,17 @@
 # pyenv env
 ENVIRONMENT=backend
 # region
-GCP_REG=
+GCP_REG=europe-west1
+# project
+GCP_PROJ=to-infinity-and-beyond
 # project id
-GCP_PROJ_ID
+GCP_PROJ_ID=to-infinity-and-beyond-425409
 # image
 IM_NAME=secret-box
 # artifact registry
-GCP_AR=
+GCP_AR=to-infinity-and-beyond-repo
 # memory
-GAR_MEM=
+GAR_MEM=2Gi
 
 ################################################################################
 # unicorn
@@ -89,13 +91,14 @@ curl_isalive_check:
 
 ### local
 
+# ALL-IN-ONE
 docker_local_build_image_arm:
 	docker build \
 	-f "docker/Dockerfile_AllInOne" \
 	--tag=${IM_NAME}:dev \
 	.
 
-docker_local_start_interactive:
+docker_local_run_interactive:
 	docker run \
 	-it \
 	-e PORT=8000 \
@@ -103,7 +106,7 @@ docker_local_start_interactive:
 	${IM_NAME}:dev \
 	bash
 
-docker_local_start:
+docker_local_run:
 	docker run \
 	-e "PORT=8000" \
 	-p 8000:8000 \
@@ -118,23 +121,36 @@ docker_local_build_image_amd64:
 
 ### GCP
 
-docker_build_api_machine_amd64_prod:
+# ALL-IN-ONE (0421OK)
+docker_gcp_build_image_amd64:
 	docker build \
+	--file "docker/Dockerfile_AllInOne" \
 	--platform linux/amd64 \
 	--tag=${GCP_REG}-docker.pkg.dev/${GCP_PROJ_ID}/${GCP_AR}/${IM_NAME}:prod \
 	.
 
-docker_push_prod:
+# ALL-IN-ONE (0421OK)
+docker_gcp_push_image_amd64:
 	docker push \
 	${GCP_REG}-docker.pkg.dev/${GCP_PROJ_ID}/${GCP_AR}/${IM_NAME}:prod
 
-docker_run_prod:
+# ALL-IN-ONE (0421OK)
+docker_gcp_run_image:
 	gcloud run deploy \
 	--image ${GCP_REG}-docker.pkg.dev/${GCP_PROJ_ID}/${GCP_AR}/${IM_NAME}:prod \
 	--memory ${GAR_MEM} \
 	--region ${GCP_REG}
 
+docker_gcp_do_it_all:
+	make docker_gcp_build_image_amd64
+	make docker_gcp_push_image_amd64
+	make docker_gcp_run_image
+
 # GCP CONFIG ###################################################################
+
+gcp_auth_login:
+	gcloud auth login
+	gcloud config set project ${GCP_PROJ_ID}
 
 gcp_auth_configure_docker:
 	gcloud auth configure-docker ${GCP_REG}-docker.pkg.dev
@@ -144,19 +160,3 @@ gcp_ar_create_repo:
 	--repository-format=docker \
 	--location=${GCP_REG} \
 	--description="tiab repo"
-
-# GCP BUILD, PUSH, DEPLOY ######################################################
-
-# gcp_docker_build:
-# 	docker build \
-# 	--platform linux/amd64 \
-# 	-t ${GCP_REG}-docker.pkg.dev/${GCP_PROJ_ID}/${GCP_AR}/${GCP_AR_IMAGE}:prod .
-
-# gcp_docker_push:
-# 	docker push ${GCP_REG}-docker.pkg.dev/${GCP_PROJ_ID}/${GCP_AR}/${GCP_AR_IMAGE}:prod
-
-# gcp_cloud_run_deploy:
-# 	gcloud run deploy \
-# 	--image ${GCP_REG}-docker.pkg.dev/${GCP_PROJ_ID}/${GCP_AR}/${GCP_AR_IMAGE}:prod \
-# 	--memory ${GAR_MEM} \
-# 	--region ${GCP_REG}

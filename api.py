@@ -22,12 +22,26 @@ fast_api_app = FastAPI()
 class Query(BaseModel):
     text: str
 
+class StoreQuery(BaseModel):
+    user_id: str
+    user_context: str
+    instructions: str
+    question: str
+
+class AskQuery(BaseModel):
+    user_id: str
+    user_context: str
+    memory: str
+
 store = MemoryStore()
 chatbot = Chatbot()
 
 @fast_api_app.get("/")
 def read_root():
-    return {"message": "container ok"}
+    return {
+        "message": "container ok",
+        "timestamp": f"{datetime.now().strftime('%Y-%m-%d@%H-%M-%S')}"
+    }
 
 @fast_api_app.post("/ask")
 def ask(query: Query):
