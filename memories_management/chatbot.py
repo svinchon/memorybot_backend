@@ -41,3 +41,34 @@ class Chatbot:
     response = response.choices[0].message.content.strip()
     print("response: "+question)
     return response
+
+  def queryInfrags(
+    self,
+    question,
+    instructions,
+    infrags
+    ):
+    # print("question: "+question)
+    context = "\n".join(
+      [f"- {m['text']} ({m['date']})" for m in infrags]
+    )
+    # print("context: "+context)
+    prompt = f"""
+      {instructions}
+      Voici les éléments d'information pertinents : {context}
+      Voici la question : {question}
+      Répond de manière claire, bienveillante, et uniquement
+      en te basant sur les éléments d'information pertinents.
+
+    """
+    response = client.chat.completions.create(
+      model=self.model,
+      messages=[
+        {"role": "system", "content": "Tu es un assistant mémoire personnel."},
+        {"role": "user", "content": prompt}
+      ],
+      temperature=0.7
+    )
+    response = response.choices[0].message.content.strip()
+    print("response: "+question)
+    return response
