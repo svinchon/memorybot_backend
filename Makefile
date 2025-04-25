@@ -85,6 +85,52 @@ curl_ask:
 curl_isalive_check:
 	curl http://0.0.0.0:8000
 
+curl_store_v2_kyan:
+	curl http://0.0.0.0:8000/v2/store \
+	-H "Content-Type: application/json" \
+	-d '{ \
+	"user_id": "kyan", \
+	"user_context": "test", \
+	"infrag": "je suis une jeune homme promis à un grand avenir." \
+	}'
+
+curl_ask_v2_kyan:
+	curl http://0.0.0.0:8000/v2/ask \
+	-H "Content-Type: application/json" \
+	-d '{ \
+	"user_id": "kyan", \
+	"user_context": "test", \
+	"instructions": "Répond au mieux à la question.", \
+	"question": "qui suis-je?" \
+	}'
+
+curl_store_v2_toto:
+	curl http://0.0.0.0:8000/v2/store \
+	-H "Content-Type: application/json" \
+	-d '{ \
+	"user_id": "toto", \
+	"user_context": "test", \
+	"infrag": "On a ecrit plein de blagues sur ma vie" \
+	}'
+
+curl_ask_v2_toto:
+	curl http://0.0.0.0:8000/v2/ask \
+	-H "Content-Type: application/json" \
+	-d '{ \
+	"user_id": "toto", \
+	"user_context": "test", \
+	"instructions": "Répond au mieux à la question.", \
+	"question": "qui suis-je?" \
+	}'
+
+curl_test:
+	echo '{ \
+	"user_id": "toto", \
+	"user_context": "test", \
+	"instructions": "Répond au mieux à la question.", \
+	"question": "qui suis-je?", \
+	}'
+
 ################################################################################
 # Docker
 ################################################################################

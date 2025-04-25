@@ -7,17 +7,23 @@ load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# This class is used to interact with the OpenAI API
+# and to generate responses based on the user's information
+# fragments and questions.
 class Chatbot:
 
+  # initializes the chatbot with a specific model.
   def __init__(self, model="gpt-3.5-turbo"):
     self.model = model
 
+  # This method is used to ask a question to the chatbot
+  # based on the user's memories.
   def ask(self, question, memories):
-    # print("question: "+question)
+    # concatenate the memories into a single string
     context = "\n".join(
       [f"- {m['text']} ({m['date']})" for m in memories]
     )
-    # print("context: "+context)
+    # prepare the prompt for the chatbot
     prompt = f"""
       Tu es un assistant personnel qui aide un homme à se rappeler
       ses souvenirs.
@@ -42,17 +48,19 @@ class Chatbot:
     print("response: "+question)
     return response
 
+  # this method is used to ask a question to the chatbot
+  # based on the user's information fragments.
   def queryInfrags(
     self,
     question,
     instructions,
     infrags
     ):
-    # print("question: "+question)
+    # concatenate the information fragments into a single string
     context = "\n".join(
       [f"- {m['text']} ({m['date']})" for m in infrags]
     )
-    # print("context: "+context)
+    # prepare the prompt for the chatbot
     prompt = f"""
       {instructions}
       Voici les éléments d'information pertinents : {context}
@@ -61,6 +69,7 @@ class Chatbot:
       en te basant sur les éléments d'information pertinents.
 
     """
+    #  call the OpenAI API to get a response
     response = client.chat.completions.create(
       model=self.model,
       messages=[
