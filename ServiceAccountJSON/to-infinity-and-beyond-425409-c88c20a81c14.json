@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "to-infinity-and-beyond-425409",
+  "private_key_id": "c88c20a81c14475c2fce40f612d87fb29217ed3d",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDnT4sbSXytVROy\nC4OjKu2FE8FdbbXdMVpeX0b+uVKPv9zIulrmnu7+fgvl62JunT8GN4CCNEdVVVYK\nD9MTwjb5/sLp4afIkNDskuAqh6CmXY5fhSPyyc1SIgLfeqRYQ2K41Cxnyz7mt2z4\nFjQMkhxD9NP8PDvNkT4WtcfaUwwTvIj81ukQbR4tM1Hp8qgSnLkUBrR1PRY4NvhV\nYLoIR7yfBIBGieEoSQLTu4Y1q4ICky/mTMXYrs98nEZuzXcW2ZZO6msqYYcHN076\nFYuPRzOeqYgO2FxqhkN90hS4cG8GOjelthFV/ljU7UfG4+K2Cy//VlIdTKSWsf29\ni3ZqwE6xAgMBAAECggEAEI75qtDma3QZLlgzqrUSfsHMyFbnu3difDn+15JFrkOy\nVu48PqEnA7HbQTDKAZghIF1NxkRezOWIfLzoQ9RV4iySIHMGc02mnyDeijzeS7qL\nzBu4WJOIrrX/labuZ+EfCpMpwJ5kmNiNpO7V+AZnnpfCqx5Wu58HnlGSBneGeE0W\neSidKWbdPDUW4uay0XGimUup69eOOD5PmuIFIsi9Xlpbu771sjr4of6gFyfw6qLD\nMngzySnTv7ZnCvgTLYJLiN/3KCm4fkQ6PaJ35hFj1MqZYg9fsFywtLB0dwdoane5\nDgOLeod8Magmv+FovyAreRlNfwv4c6lSRBkiLO4V1wKBgQD541LBiJZh1ylLNx4+\nYIh/oQUBwYgIpdfc8lfpAgLdCzde/OC0EY5pj5ymAG69bGI3mqMkom6I65uqEWZG\nWe48o70CcE7D05SYM5xQzbASip4OkM027t6gMl9QzbgbGbdSrOkJLlvM2fQBI7LT\n9fPQxCPuV0/Vho43aOX9zXYAuwKBgQDs9+X5o5ykUqNogo+Qnwmp1VJV/iM4TvrZ\nS8FAS/wgpKZpApO8CxjXzS2hqLnpsBnJw8UCITyY4NNHd0nhSL+H4KAiTSopwrmT\nuUHJsR9qTAi8mc3TuqikxkvuwK7rBqsi3W4kAdJ4teaQi+IJunK9GUS/C2X1hoHo\nB694Hq5dgwKBgENWGmrEX6Gl1R7Lj37HjIC35x1+BSYvamfDdiT3wcXGy/jws6xS\nPsn7RP8GhtDMb/sD1Ip+qsKCmsPNRH4YpbX5eWk60j66uQP6hFjR1GxqpgTOyD3R\nSHRqnnyrsry6xUemCHXM5DfjU3krIXk0garz76q+JGkphRExVyh5QR8ZAoGAE5VJ\nBCBpSYsqxfBEPQdnnQlsDH88GeMtB9gi2FVvOKNivTrhSqEAJJVoN/vhoVZUS0BK\nf6qPf3LVAwrwqBWC/o+prCwEV/8npvWgYjKpDffKoQt03xKF7VgV3l0+F14ttmvm\nNkOQSTl/HGLzAyrNYKM98yvV+Txsb+hyr9KZRlECgYEAhET20DXMF+P4FMYrvTFr\nYC0xH9czbcCwPnUAsbxCvYW9jB4P6OovWWwsAmZ41ndJg8enMGd55R2cjYly0Aqo\n9dKiUzNfmH0htocDGpgL4omDAfB1tHcLyQpOj6leGKGZUEzEWvDeVh/vlURESg+g\ncbCHpaLnDitynA4CXoPt7gk=\n-----END PRIVATE KEY-----\n",
+  "client_email": "voiceagent@to-infinity-and-beyond-425409.iam.gserviceaccount.com",
+  "client_id": "115151698418036203627",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/voiceagent%40to-infinity-and-beyond-425409.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

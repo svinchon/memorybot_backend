@@ -19,9 +19,11 @@ class Chatbot:
   # This method is used to ask a question to the chatbot
   # based on the user's memories.
   def ask(self, question, memories):
+    print("starting chatbot ask")
+    print("question to chatbot: "+question)
     # concatenate the memories into a single string
     context = "\n".join(
-      [f"- {m['text']} ({m['date']})" for m in memories]
+      [f"- {m['text']} ({m['storage_date']})" for m in memories]
     )
     # prepare the prompt for the chatbot
     prompt = f"""
@@ -45,7 +47,7 @@ class Chatbot:
       temperature=0.7
     )
     response = response.choices[0].message.content.strip()
-    print("response: "+question)
+    print("response from chatbot: "+question)
     return response
 
   # this method is used to ask a question to the chatbot
@@ -55,10 +57,12 @@ class Chatbot:
     question,
     instructions,
     infrags
-    ):
+  ):
+    print("starting chatbot queryInfrags")
+    print("question to chatbot: "+question)
     # concatenate the information fragments into a single string
     context = "\n".join(
-      [f"- {m['text']} ({m['date']})" for m in infrags]
+      [f"- {m['text']} ({m['storage_date']})" for m in infrags]
     )
     # prepare the prompt for the chatbot
     prompt = f"""
@@ -79,5 +83,21 @@ class Chatbot:
       temperature=0.7
     )
     response = response.choices[0].message.content.strip()
-    print("response: "+question)
+    print("response from chatbot: "+response)
+    return response
+
+  # this method is generic to invoke chat gpt
+  def askLLM(self, user_id, instructions, request):
+    print("starting chatbot ask-llm")
+    print("question to chatbot ask-llm: "+request)
+    prompt = f"{instructions}\n{request}"
+    response = client.chat.completions.create(
+      model=self.model,
+      messages=[
+        {"role": "user", "content": prompt}
+      ],
+      temperature=0.7
+    )
+    response = response.choices[0].message.content.strip()
+    print("response from chatbot ask-llm: "+response)
     return response

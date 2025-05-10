@@ -2,21 +2,25 @@ import json
 import faiss
 import os
 import numpy as np
-from memories_management.embedder import Embedder # vectorization lib
+from infragsmgr.embedder import Embedder # vectorization lib
 
 class MemoryStore:
 
-    def __init__(self, json_path="memories_management/data/memories.json", index_path="memories_management/data/index.faiss"):
+    def __init__(
+        self,
+        json_path="infragsmgr/data/memories.json",
+        index_path="infragsmgr/data/index.faiss"
+    ):
         self.json_path = json_path
         self.index_path = index_path
         self.embedder = Embedder()
-        self.dim = 384  # Taille du vecteur pour le modèle MiniLM
+        self.dim = 384
 
         os.makedirs("data", exist_ok=True)
         self.memories = self.load_memories()
 
         self.index = faiss.IndexFlatL2(self.dim)
-        self.id_map = []  # correspondance entre index et ID de souvenir
+        self.id_map = []
 
         if self.memories:
             self.rebuild_index()
@@ -37,7 +41,7 @@ class MemoryStore:
         self.memories.append({
             "id": memory_id,
             "text": text,
-            "date": date
+            "storage_date": date
         })
         self.index.add(np.array([vec]).astype("float32"))
         self.id_map.append(memory_id)

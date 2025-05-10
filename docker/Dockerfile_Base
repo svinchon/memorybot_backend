@@ -1,0 +1,10 @@
+# create basemachine
+
+FROM python:3.12-slim-bullseye
+
+# needed to install packages
+COPY requirements.txt requirements.txt
+
+# install needed packages
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt

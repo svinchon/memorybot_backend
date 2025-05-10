@@ -1,0 +1,16 @@
+# from basemachine to finalmachine
+
+FROM python-ia-base-machine-amd64:dev
+
+# copy python files
+COPY .env /app/.env
+COPY version.txt /app/version.txt
+COPY readme.txt /app/readme.txt
+COPY api.py /app/api.py
+COPY infragsmgr/ /app/infragsmgr/
+
+# move to work directory
+WORKDIR /app
+
+# run uvicorn server with port from environment variable
+CMD ["sh", "-c", "uvicorn api:fast_api_app --host 0.0.0.0 --port ${PORT:-8000}"]

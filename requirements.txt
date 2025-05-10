@@ -10,3 +10,4 @@ SpeechRecognition
 pydantic
 dotenv
 hf_xet
+google-cloud-storage
