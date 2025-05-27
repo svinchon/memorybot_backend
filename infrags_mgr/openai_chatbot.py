@@ -10,17 +10,19 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # This class is used to interact with the OpenAI API
 # and to generate responses based on the user's information
 # fragments and questions.
-class Chatbot:
+class OpenAIChatbot:
 
   # initializes the chatbot with a specific model.
   def __init__(self, model="gpt-3.5-turbo"):
     self.model = model
+    self.llm = "OpenAI"
 
   # This method is used to ask a question to the chatbot
   # based on the user's memories.
   def ask(self, question, memories):
-    print("starting chatbot ask")
-    print("question to chatbot: "+question)
+    # print("starting chatbot ask")
+    # print("chatbot is: "+self.llm)
+    # print("question to chatbot: "+question)
     # concatenate the memories into a single string
     context = "\n".join(
       [f"- {m['text']} ({m['storage_date']})" for m in memories]
@@ -47,7 +49,7 @@ class Chatbot:
       temperature=0.7
     )
     response = response.choices[0].message.content.strip()
-    print("response from chatbot: "+question)
+    # print("respon\se from chatbot: "+question)
     return response
 
   # this method is used to ask a question to the chatbot
@@ -58,8 +60,9 @@ class Chatbot:
     instructions,
     infrags
   ):
-    print("starting chatbot queryInfrags")
-    print("question to chatbot: "+question)
+    # print("starting chatbot queryInfrags")
+    # print("chatbot is: "+self.llm)
+    # print("question to chatbot: "+question)
     # concatenate the information fragments into a single string
     context = "\n".join(
       [f"- {m['text']} ({m['storage_date']})" for m in infrags]
@@ -83,13 +86,14 @@ class Chatbot:
       temperature=0.7
     )
     response = response.choices[0].message.content.strip()
-    print("response from chatbot: "+response)
+    # print("response from chatbot: "+response)
     return response
 
   # this method is generic to invoke chat gpt
   def askLLM(self, user_id, instructions, request):
-    print("starting chatbot ask-llm")
-    print("question to chatbot ask-llm: "+request)
+    # print("starting chatbot ask-llm")
+    # print("chatbot is: "+self.llm)
+    # print("question to chatbot ask-llm: "+request)
     prompt = f"{instructions}\n{request}"
     response = client.chat.completions.create(
       model=self.model,
@@ -99,5 +103,5 @@ class Chatbot:
       temperature=0.7
     )
     response = response.choices[0].message.content.strip()
-    print("response from chatbot ask-llm: "+response)
+    # print("response from chatbot ask-llm: "+response)
     return response

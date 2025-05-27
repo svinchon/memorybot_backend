@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Bot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .status-bar {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px 15px 0 0;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .tab.active {
+            background: rgba(255,255,255,0.2);
+            box-shadow: inset 0 2px 0 #fff;
+        }
+
+        .tab-content {
+            background: white;
+            border-radius: 0 0 15px 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+        }
+
+        .response-area {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-display {
+            display: block;
+            padding: 12px;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-display:hover {
+            background: #e9ecef;
+            border-color: #5a67d8;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .infrags-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .infrag-item {
+            padding: 15px;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            position: relative;
+        }
+
+        .infrag-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .infrag-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+            min-width: auto;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+        }
+
+        .infrag-content {
+            margin-right: 80px;
+        }
+
+        .infrag-id {
+            font-size: 10px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .audio-controls {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .success {
+            background: #efe;
+            color: #393;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="header">
+            <h1>Memory Bot</h1>
+            <p>Interface Web de Test</h1>
+        </div>
+
+        <div class="status-bar">
+            <div>
+                <strong>Status:</strong> <span id="api-status">Checking...</span>
+            </div>
+            <div>
+                <strong>API URL:</strong> <span id="current-url">Même domaine</span>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <!--button class="tab active" onclick="showTab('chatbot')">💬 Chatbot</button-->
+            <button class="tab active" onclick="showTab('llm')">🤖 LLM</button>
+            <button class="tab" onclick="showTab('infrags')">📚 Fragments</button>
+            <button class="tab" onclick="showTab('voice')">🎵 Vocal</button>
+            <button class="tab" onclick="showTab('debug')">🔧 Debug</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Chatbot Tab -->
+            <!--
+            <div id="chatbot" class="tab-panel active">
+                <h2>💬 Assistant Conversationnel</h2>
+                <div class="grid">
+                    <div>
+                        <h3>Chat Simple (V1)</h3>
+                        <div class="form-group">
+                            <label>Votre question :</label>
+                            <textarea id="simple-question" placeholder="Posez votre question..."></textarea>
+                        </div>
+                        <button class="btn" onclick="askSimple()">Poser la question</button>
+                        <div id="simple-response" class="response-area" style="display:none;"></div>
+                    </div>
+                    <div>
+                        <h3>Chat Avancé (V2)</h3>
+                        <div class="form-group">
+                            <label>User ID :</label>
+                            <input type="text" id="user-id" placeholder="exemple@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Contexte :</label>
+                            <input type="text" id="user-context" placeholder="souvenirs, travail, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label>Instructions :</label>
+                            <textarea id="instructions" placeholder="Instructions pour l'assistant..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Question :</label>
+                            <textarea id="advanced-question" placeholder="Votre question..."></textarea>
+                        </div>
+                        <button class="btn" onclick="askAdvanced()">Poser la question</button>
+                        <div id="advanced-response" class="response-area" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            -->
+
+            <!-- Infrags Tab -->
+            <div id="infrags" class="tab-panel ">
+                <h2>📚 Gestion des Fragments d'Information</h2>
+                <div class="grid">
+                    <div>
+                        <h3 id="form-title">Ajouter un Fragment</h3>
+                        <div class="form-group">
+                            <label>User ID :</label>
+                            <input type="text" id="store-user-id" placeholder="exemple@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Contexte :</label>
+                            <input type="text" id="store-user-context" placeholder="souvenirs, travail, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label>Fragment d'information :</label>
+                            <textarea id="infrag-text" placeholder="Informations à stocker..."></textarea>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-success" id="save-btn" onclick="storeInfrag()">Sauvegarder</button>
+                            <button class="btn btn-secondary" id="cancel-btn" onclick="cancelEdit()" style="display:none;">Annuler</button>
+                        </div>
+                        <div id="store-response" class="response-area" style="display:none;"></div>
+                    </div>
+                    <div>
+                        <h3>Consulter les Fragments</h3>
+                        <div style="margin-bottom: 15px;">
+                            <div class="form-group">
+                                <label>Filtrer par User ID :</label>
+                                <input type="text" id="filter-user-id" placeholder="Laisser vide pour tous">
+                            </div>
+                            <div class="form-group">
+                                <label>Filtrer par Contexte :</label>
+                                <input type="text" id="filter-context" placeholder="Laisser vide pour tous">
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="loadInfrags()">🔍 Charger les fragments</button>
+                        <div id="infrags-list" class="infrags-list" style="display:none;"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 30px;">
+                    <h3>Import/Export</h3>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="infrags-file" accept=".json" onchange="uploadInfrags()">
+                        <label for="infrags-file" class="file-input-display">
+                            📁 Cliquez pour importer un fichier JSON
+                        </label>
+                    </div>
+                    <button class="btn btn-secondary" onclick="reloadInfrags()" style="margin-top: 10px;">🔄 Recharger les fragments</button>
+                </div>
+            </div>
+
+            <!-- Voice Tab -->
+            <div id="voice" class="tab-panel">
+                <h2>🎵 Fonctionnalités Vocales</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>🔊 Synthèse Vocale</h3>
+                        <div class="form-group">
+                            <label>Texte à synthétiser :</label>
+                            <textarea id="tts-text" placeholder="Entrez le texte à convertir en audio..."></textarea>
+                        </div>
+                        <button class="btn" onclick="textToSpeech()">Générer Audio</button>
+                        <div class="audio-controls">
+                            <audio id="tts-audio" controls style="display:none; width: 100%;"></audio>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>🎤 Reconnaissance Vocale</h3>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="audio-file" accept="audio/*" onchange="speechToText()">
+                            <label for="audio-file" class="file-input-display">
+                                🎤 Cliquez pour sélectionner un fichier audio
+                            </label>
+                        </div>
+                        <div id="stt-response" class="response-area" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LLM Tab -->
+            <div id="llm" class="tab-panel active">
+                <h2>🤖 Large Language Model</h2>
+                <div class="grid">
+                    <div>
+                        <h3>LLM Direct</h3>
+                        <div class="form-group">
+                            <label>User ID :</label>
+                            <input type="text" id="llm-user-id" placeholder="exemple@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Instructions :</label>
+                            <textarea id="llm-instructions" placeholder="Instructions pour le LLM..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Requête :</label>
+                            <textarea id="llm-request" placeholder="Votre demande..."></textarea>
+                        </div>
+                        <button class="btn" onclick="askLLM()">Interroger LLM</button>
+                        <div id="llm-response" class="response-area" style="display:none;"></div>
+                    </div>
+                    <div>
+                        <h3>LLM avec Fragments</h3>
+                        <div class="form-group">
+                            <label>User ID :</label>
+                            <input type="text" id="llm-infrag-user-id" placeholder="exemple@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Contexte :</label>
+                            <input type="text" id="llm-infrag-context" placeholder="contexte de recherche">
+                        </div>
+                        <div class="form-group">
+                            <label>Instructions :</label>
+                            <textarea id="llm-infrag-instructions" placeholder="Instructions pour le LLM..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Requête :</label>
+                            <textarea id="llm-infrag-request" placeholder="Votre demande..."></textarea>
+                        </div>
+                        <button class="btn" onclick="askLLMWithInfrags()">Interroger LLM + Fragments</button>
+                        <div id="llm-infrag-response" class="response-area" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debug Tab -->
+            <div id="debug" class="tab-panel">
+                <h2>🔧 Informations de Debug</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Status API</h3>
+                        <button class="btn btn-secondary" onclick="checkStatus()">Vérifier le statut</button>
+                        <div id="status-response" class="response-area" style="display:none;"></div>
+                    </div>
+                    <div class="card">
+                        <h3>Debug Info</h3>
+                        <button class="btn btn-secondary" onclick="getDebugInfo()">Infos Debug</button>
+                        <div id="debug-response" class="response-area" style="display:none;"></div>
+                    </div>
+                </div>
+                <div class="card" style="margin-top: 20px;">
+                    <h3>README</h3>
+                    <button class="btn btn-secondary" onclick="getReadme()">Charger README</button>
+                    <div id="readme-response" class="response-area" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Traitement en cours...</p>
+        </div>
+    </div>
+
+    <script>
+        // L'API est maintenant sur le même domaine
+        const API_BASE = window.location.origin;
+
+        // Tab management
+        function showTab(tabName) {
+            // Hide all tab panels
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab panel
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Utility functions
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showResponse(elementId, content, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.textContent = typeof content === 'object' ? JSON.stringify(content, null, 2) : content;
+            element.className = `response-area ${isError ? 'error' : ''}`;
+        }
+
+        // API functions
+        async function apiCall(endpoint, method = 'GET', body = null, isFile = false) {
+            showLoading();
+            try {
+                const options = {
+                    method: method,
+                    headers: isFile ? {} : { 'Content-Type': 'application/json' }
+                };
+
+                if (body) {
+                    options.body = isFile ? body : JSON.stringify(body);
+                }
+
+                const response = await fetch(`${API_BASE}${endpoint}`, options);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('API call failed:', error);
+                throw error;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Chatbot functions
+        async function askSimple() {
+            const question = document.getElementById('simple-question').value;
+            if (!question.trim()) {
+                alert('Veuillez saisir une question');
+                return;
+            }
+
+            try {
+                const response = await apiCall('/ask', 'POST', { text: question });
+                showResponse('simple-response', response.text);
+            } catch (error) {
+                showResponse('simple-response', `Erreur: ${error.message}`, true);
+            }
+        }
+
+        async function askAdvanced() {
+            const userId = document.getElementById('user-id').value;
+            const userContext = document.getElementById('user-context').value;
+            const instructions = document.getElementById('instructions').value;
+            const question = document.getElementById('advanced-question').value;
+
+            if (!userId || !userContext || !question) {
+                alert('Veuillez remplir tous les champs obligatoires');
+                return;
+            }
+
+            try {
+                const response = await apiCall('/v2/ask', 'POST', {
+                    user_id: userId,
+                    user_context: userContext,
+                    instructions: instructions,
+                    question: question
+                });
+                showResponse('advanced-response', response.text);
+            } catch (error) {
+                showResponse('advanced-response', `Erreur: ${error.message}`, true);
+            }
+        }
+
+        // Variables globales pour l'édition
+        let currentEditingId = null;
+        let originalFormData = null;
+
+        // Infrag functions
+        async function storeInfrag() {
+            const userId = document.getElementById('store-user-id').value;
+            const userContext = document.getElementById('store-user-context').value;
+            const infragText = document.getElementById('infrag-text').value;
+
+            if (!userId || !userContext || !infragText) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+
+            try {
+                let response;
+                if (currentEditingId) {
+                    // Mode édition
+                    response = await apiCall(`/v2/infrags/${currentEditingId}`, 'PUT', {
+                        user_id: userId,
+                        user_context: userContext,
+                        infrag_id: currentEditingId,
+                        new_text: infragText
+                    });
+                    showResponse('store-response', 'Fragment modifié avec succès !');
+                    cancelEdit();
+                } else {
+                    // Mode création
+                    response = await apiCall('/v2/infrags/add', 'POST', {
+                        user_id: userId,
+                        user_context: userContext,
+                        infrag: infragText
+                    });
+                    showResponse('store-response', response.text);
+                    document.getElementById('infrag-text').value = '';
+                }
+
+                // Recharger la liste
+                loadInfrags();
+            } catch (error) {
+                showResponse('store-response', `Erreur: ${error.message}`, true);
+            }
+        }
+
+        function editInfrag(infragId, userId, userContext, text) {
+            // Passer en mode édition
+            currentEditingId = infragId;
+            originalFormData = {
+                userId: document.getElementById('store-user-id').value,
+                userContext: document.getElementById('store-user-context').value,
+                text: document.getElementById('infrag-text').value
+            };
+
+            // Remplir le formulaire
+            document.getElementById('store-user-id').value = userId;
+            document.getElementById('store-user-context').value = userContext;
+            document.getElementById('infrag-text').value = text;
+
+            // Changer l'interface
+            document.getElementById('form-title').textContent = 'Modifier le Fragment';
+            document.getElementById('save-btn').textContent = 'Mettre à jour';
+            document.getElementById('save-btn').className = 'btn btn-edit';
+            document.getElementById('cancel-btn').style.display = 'inline-block';
+
+            // Scroll vers le formulaire
+            document.getElementById('form-title').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            // Sortir du mode édition
+            currentEditingId = null;
+
+            // Restaurer les données originales si elles existent
+            if (originalFormData) {
+                document.getElementById('store-user-id').value = originalFormData.userId;
+                document.getElementById('store-user-context').value = originalFormData.userContext;
+                document.getElementById('infrag-text').value = originalFormData.text;
+                originalFormData = null;
+            } else {
+                // Vider le formulaire
+                document.getElementById('store-user-id').value = '';
+                document.getElementById('store-user-context').value = '';
+                document.getElementById('infrag-text').value = '';
+            }
+
+            // Restaurer l'interface
+            document.getElementById('form-title').textContent = 'Ajouter un Fragment';
+            document.getElementById('save-btn').textContent = 'Sauvegarder';
+            document.getElementById('save-btn').className = 'btn btn-success';
+            document.getElementById('cancel-btn').style.display = 'none';
+        }
+
+        async function deleteInfrag(infragId, userId, userContext) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce fragment ?')) {
+                return;
+            }
+
+            try {
+                const response = await apiCall(`/v2/infrags/${infragId}?user_id=${encodeURIComponent(userId)}&user_context=${encodeURIComponent(userContext)}`, 'DELETE');
+                alert('Fragment supprimé avec succès !');
+                loadInfrags(); // Recharger la liste
+            } catch (error) {
+                alert(`Erreur lors de la suppression: ${error.message}`);
+            }
+        }
+
+        async function loadInfrags() {
+            try {
+                const filterUserId = document.getElementById('filter-user-id').value;
+                const filterContext = document.getElementById('filter-context').value;
+
+                let url = '/v2/infrags/detailed';
+                const params = new URLSearchParams();
+                if (filterUserId) params.append('user_id', filterUserId);
+                if (filterContext) params.append('user_context', filterContext);
+                if (params.toString()) url += '?' + params.toString();
+
+                const response = await apiCall(url);
+                const infragsList = document.getElementById('infrags-list');
+                infragsList.innerHTML = '';
+
+                if (response.infrags && Array.isArray(response.infrags)) {
+                    if (response.infrags.length === 0) {
+                        infragsList.innerHTML = '<p>Aucun fragment trouvé avec ces critères</p>';
+                    } else {
+                        response.infrags.forEach(infrag => {
+                            const div = document.createElement('div');
+                            div.className = 'infrag-item';
+
+                            // Générer un ID unique si pas présent
+                            const infragId = infrag.id || `${infrag.user_id}_${infrag.user_context}_${Date.now()}`;
+
+                            div.innerHTML = `
+                                <div class="infrag-actions">
+                                    <button class="btn btn-small btn-edit" onclick="editInfrag('${infragId}', '${infrag.user_id || ''}', '${infrag.user_context || ''}', ${JSON.stringify(infrag.text || '').replace(/"/g, '&quot;')})">✏️</button>
+                                    <button class="btn btn-small btn-delete" onclick="deleteInfrag('${infragId}', '${infrag.user_id || ''}', '${infrag.user_context || ''}')">🗑️</button>
+                                </div>
+                                <div class="infrag-content">
+                                    <div class="infrag-id">ID: ${infragId}</div>
+                                    <strong>User:</strong> ${infrag.user_id || 'N/A'}<br>
+                                    <strong>Context:</strong> ${infrag.user_context || 'N/A'}<br>
+                                    <strong>Date:</strong> ${infrag.storage_date || 'N/A'}<br>
+                                    <strong>Text:</strong> ${infrag.text || 'N/A'}
+                                </div>
+                            `;
+                            infragsList.appendChild(div);
+                        });
+                    }
+                } else {
+                    infragsList.innerHTML = '<p>Aucun fragment trouvé</p>';
+                }
+
+                infragsList.style.display = 'block';
+            } catch (error) {
+                // Fallback vers l'ancienne API
+                try {
+                    const response = await apiCall('/infrags');
+                    const infragsList = document.getElementById('infrags-list');
+                    infragsList.innerHTML = '';
+
+                    if (response.infrags && Array.isArray(response.infrags)) {
+                        response.infrags.forEach((infrag, index) => {
+                            const div = document.createElement('div');
+                            div.className = 'infrag-item';
+                            const infragId = infrag.id || `legacy_${index}`;
+
+                            div.innerHTML = `
+                                <div class="infrag-actions">
+                                    <button class="btn btn-small btn-edit" onclick="editInfrag('${infragId}', '${infrag.user_id || ''}', '${infrag.user_context || ''}', ${JSON.stringify(infrag.text || '').replace(/"/g, '&quot;')})">✏️</button>
+                                    <button class="btn btn-small btn-delete" onclick="deleteInfrag('${infragId}', '${infrag.user_id || ''}', '${infrag.user_context || ''}')">🗑️</button>
+                                </div>
+                                <div class="infrag-content">
+                                    <div class="infrag-id">ID: ${infragId}</div>
+                                    <strong>User:</strong> ${infrag.user_id || 'N/A'}<br>
+                                    <strong>Context:</strong> ${infrag.user_context || 'N/A'}<br>
+                                    <strong>Date:</strong> ${infrag.storage_date || 'N/A'}<br>
+                                    <strong>Text:</strong> ${infrag.text || 'N/A'}
+                                </div>
+                            `;
+                            infragsList.appendChild(div);
+                        });
+                    }
+                    infragsList.style.display = 'block';
+                } catch (fallbackError) {
+                    showResponse('infrags-list', `Erreur: ${error.message}`, true);
+                }
+            }
+        }
+
+        async function uploadInfrags() {
+            const fileInput = document.getElementById('infrags-file');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                showLoading();
+                const response = await fetch(`${API_BASE}/v2/infrags`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                alert('Fichier uploadé avec succès !');
+            } catch (error) {
+                alert(`Erreur lors de l'upload: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function reloadInfrags() {
+            try {
+                const response = await apiCall('/v2/infrags/reload');
+                alert('Fragments rechargés avec succès !');
+            } catch (error) {
+                alert(`Erreur: ${error.message}`);
+            }
+        }
+
+        // Voice functions
+        async function textToSpeech() {
+            const text = document.getElementById('tts-text').value;
+            if (!text.trim()) {
+                alert('Veuillez saisir du texte');
+                return;
+            }
+
+            try {
+                showLoading();
+                const response = await fetch(`${API_BASE}/text-to-speech`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                const audioUrl = URL.createObjectURL(blob);
+                const audioElement = document.getElementById('tts-audio');
+                audioElement.src = audioUrl;
+                audioElement.style.display = 'block';
+            } catch (error) {
+                alert(`Erreur: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function speechToText() {
+            const fileInput = document.getElementById('audio-file');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                showLoading();
+                const response = await fetch(`${API_BASE}/speech-to-text`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                showResponse('stt-response', result.text);
+            } catch (error) {
+                showResponse('stt-response', `Erreur: ${error.message}`, true);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // LLM functions
+        async function askLLM() {
+            const userId = document.getElementById('llm-user-id').value;
+            const instructions = document.getElementById('llm-instructions').value;
+            const request = document.getElementById('llm-request').value;
+
+            if (!userId || !request) {
+                alert('Veuillez remplir les champs obligatoires');
+                return;
+            }
+
+            try {
+                const response = await apiCall('/v2/ask-llm', 'POST', {
+                    user_id: userId,
+                    instructions: instructions,
+                    request: request
+                });
+                showResponse('llm-response', response.text);
+            } catch (error) {
+                showResponse('llm-response', `Erreur: ${error.message}`, true);
+            }
+        }
+
+        async function askLLMWithInfrags() {
+            const userId = document.getElementById('llm-infrag-user-id').value;
+            const userContext = document.getElementById('llm-infrag-context').value;
+            const instructions = document.getElementById('llm-infrag-instructions').value;
+            const request = document.getElementById('llm-infrag-request').value;
+
+            if (!userId || !userContext || !request) {
+                alert('Veuillez remplir les champs obligatoires');
+                return;
+            }
+
+            try {
+                const response = await apiCall('/v2/ask-llm-providing-infrags', 'POST', {
+                    user_id: userId,
+                    user_context: userContext,
+                    instructions: instructions,
+                    request: request
+                });
+                showResponse('llm-infrag-response', response.text);
+            } catch (error) {
+                showResponse('llm-infrag-response', `Erreur: ${error.message}`, true);
+            }
+        }
+
+        // Debug functions
+        async function checkStatus() {
+            try {
+                const response = await apiCall('/debug');
+                showResponse('status-response', response);
+            } catch (error) {
+                showResponse('status-response', `Erreur: ${error.message}`, true);
+            }
+        }
+
+        async function getDebugInfo() {
+            try {
+                const response = await apiCall('/debug');
+                showResponse('debug-response', response);
+            } catch (error) {
+                showResponse('debug-response', `Erreur: ${error.message}`, true);
+            }
+        }
+
+        async function getReadme() {
+            try {
+                showLoading();
+                const response = await fetch(`${API_BASE}/readme`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const text = await response.text();
+                showResponse('readme-response', text);
+            } catch (error) {
+                showResponse('readme-response', `Erreur: ${error.message}`, true);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', async function() {
+            try {
+                const response = await fetch(`${API_BASE}/`);
+                document.getElementById('api-status').textContent = response.ok ? '✅ En ligne' : '❌ Hors ligne';
+                document.getElementById('api-status').style.color = response.ok ? '#00b894' : '#e17055';
+            } catch (error) {
+                document.getElementById('api-status').textContent = '❌ Hors ligne';
+                document.getElementById('api-status').style.color = '#e17055';
+            }
+        });
+    </script>
+</body>
+</html>

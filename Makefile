@@ -145,11 +145,11 @@ curl_get_infrags:
 #
 curl_post_infrags:
 	curl http://0.0.0.0:8000/infrags \
-	-F "file=@infragsmgr/data/infrags.json"
+	-F "file=@infrags_mgr/data/infrags.json"
 #
 curl_post_infrags_gcp:
 	curl https://secret-box-456003509969.europe-west1.run.app/infrags \
-	-F "file=@infragsmgr/data/infrags.json"
+	-F "file=@infrags_mgr/data/infrags.json"
 #
 curl_reload_infrags_gcp:
 	curl https://secret-box-456003509969.europe-west1.run.app/reload-infrags

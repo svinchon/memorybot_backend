@@ -123,4 +123,4 @@ __pypackages__/
 # IA
 *.gguf
 
-ignore/
+to_be_ignored/

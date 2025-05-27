@@ -7,7 +7,8 @@ COPY .env /app/.env
 COPY version.txt /app/version.txt
 COPY readme.txt /app/readme.txt
 COPY api.py /app/api.py
-COPY infragsmgr/ /app/infragsmgr/
+COPY infrags_mgr/ /app/infrags_mgr/
+COPY static/  app/static/
 
 # move to work directory
 WORKDIR /app

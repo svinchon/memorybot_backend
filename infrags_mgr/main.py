@@ -1,5 +1,5 @@
 from memory_store import MemoryStore
-from chatbot import Chatbot
+from infrags_mgr.openai_chatbot import Chatbot
 from datetime import datetime
 
 def main():

@@ -1,5 +1,3 @@
-# main file / class
-# instantiated by uvicorn at statup
 
 # region "Imports"
 
@@ -13,7 +11,8 @@ import re
 
 # fastapi libraries
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from pydantic import BaseModel
 
@@ -22,50 +21,55 @@ from gtts import gTTS
 import speech_recognition as sr
 
 # local libraries
-from infragsmgr.memory_store import MemoryStore
-from infragsmgr.infrag_store import InfragStore
-from infragsmgr.chatbot import Chatbot
+from infrags_mgr.memory_store import MemoryStore
+from infrags_mgr.infrag_store import InfragStore
+from infrags_mgr.openai_chatbot import OpenAIChatbot
+from infrags_mgr.google_chatbot import GoogleChatbot
 
 # endregion
 
 # region "FastAPI"
-# usage of the FastAPI framework to expose a REST API
-# endregion
+
 fast_api_app = FastAPI()
 
-# region "Query"
-# first type of object used to pass information to the API
-# JSON object looking like {"text": "ceci est un test"}
+static_dir = "static"
+if os.path.exists(static_dir):
+    fast_api_app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+@fast_api_app.get("/gui", response_class=HTMLResponse)
+async def get_web_interface():
+    """Sert l'interface web graphique"""
+    html_file = "static/index.html"
+    if os.path.exists(html_file):
+        with open(html_file, "r", encoding="utf-8") as f:
+            return HTMLResponse(f.read())
+    else:
+        return HTMLResponse("<h1>Interface non trouvée</h1><p>Le fichier index.html n'existe pas dans le dossier static/</p>")
+
+
 # endregion
+
+# region "Queries"
+
 class Query(BaseModel):
     text: str
 
-# region "StoreQuery"
-# second type of object used to pass information to the API
-# (to store an "information fragment", for instance a memory)
-# JSON object looking like
-# {
-# "user_id": "toto@gmail.com",
-# "user_context": "souvenirs",
-# "infrag": "un jour je suis né"
-# }
-# endregion
-class StoreQuery(BaseModel):
+class StoreInfragQuery(BaseModel):
     user_id: str
     user_context: str
     infrag: str
 
-# region "AskQuery"
-# third type of object used to pass information to the API
-# (to ask a question)
-# JSON object looking like
-# {
-# "user_id": "toto@gmail.com",
-# "user_context": "souvenirs",
-# "infinstructionds":
-# "un jour je suis né"
-# }
-# endregion
+class UpdateInfragQuery(BaseModel):
+    user_id: str
+    user_context: str
+    infrag_id: str
+    new_text: str
+
+class DeleteInfragQuery(BaseModel):
+    user_id: str
+    user_context: str
+    infrag_id: str
+
 class AskQuery(BaseModel):
     user_id: str
     user_context: str
@@ -83,14 +87,18 @@ class LLMProvidingInfragsQuery(BaseModel):
     instructions: str
     request: str
 
-# region instantiation
-# instantiate the memory store (defined in memories_management/memory_store.py)
-# instantiate the infrag store (defined in memories_management/infrag_store.py)
-# instantiate the chatbot (defined in memories_management/chatbot.py)
 # endregion
+
+# region "Instantiations"
+
 store = MemoryStore()
 infrag_store = InfragStore()
-chatbot = Chatbot()
+# chatbot = OpenAIChatbot()
+chatbot = GoogleChatbot()
+
+# endregion
+
+# region "Utility Functions"
 
 def get_version():
     try:
@@ -121,16 +129,27 @@ def get_gcs_content():
         gcs_content = "Folder /gcs does not exist"
     return gcs_content
 
-# "/" GET mapping
+# endregion
+
+# region "Mappings"
+
+# region "Admin"
+
 @fast_api_app.get("/")
 def read_root():
-    version = get_version()
-    return {
-        "message": f"container generated on {version} is ok",
-        "timestamp": f"{datetime.now().strftime('%Y-%m-%d@%H-%M-%S')}"
-    }
+    return HTMLResponse("""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta http-equiv="refresh" content="0; url=/gui">
+        <title>Redirection...</title>
+    </head>
+    <body>
+        <p>Redirection vers l'interface... <a href="/gui">Cliquez ici si la redirection ne fonctionne pas</a></p>
+    </body>
+    </html>
+    """)
 
-# "/readme" GET mapping
 @fast_api_app.get("/readme", response_class=PlainTextResponse)
 def readme():
     try:
@@ -142,7 +161,6 @@ def readme():
         readme = f"Error reading readme.txt: {e}"
     return readme
 
-# "/debug" GET mapping
 @fast_api_app.get("/debug")
 def debug():
     version = get_version()
@@ -151,13 +169,30 @@ def debug():
         "message": f"container generated on {version} is ok",
         "timestamp": f"{datetime.now().strftime('%Y-%m-%d@%H-%M-%S')}",
         "gcs": gcs_content,
-        "islocal": get_is_local()
+        "islocal": get_is_local(),
+        "llm": chatbot.llm
     }
 
-# "/infrags" GET mapping
-@fast_api_app.get("/infrags")
+# endregion
+
+# region "v2"
+
+@fast_api_app.post("/v2/infrags/add")
+def add_infrag(query: StoreInfragQuery):
+    # create a timestamp with the current date
+    ts = datetime.now().strftime("%Y-%m-%d")
+    # call the add_infrag of the infrag_store object with the user_id, user_context, infrag (infomation fragment) and a timestamp
+    infrag_store.add_infrag(
+        user_id=query.user_id,
+        user_context=query.user_context,
+        text=query.infrag,
+        date=ts
+    )
+    return {"text": "Information fragment added successfully!"}
+
+@fast_api_app.get("/v2/infrags")
 def get_infrags():
-    file_path = "infragsmgr/data/infrags.json"
+    file_path = "infrags_mgr/data/infrags.json"
     if (get_is_local() != True):
         file_path = "/gcs/voiceagent/infrags.json"
     with open(file_path, "r") as infrags_file:
@@ -169,11 +204,10 @@ def get_infrags():
         media_type="application/json; charset=utf-8"
     )
 
-# "/infrags" POST mapping
-@fast_api_app.post("/infrags")
+@fast_api_app.post("/v2/infrags")
 def post_infrags(file: UploadFile = File(...)):
     ts = datetime.now().strftime("%Y-%m-%d@%H-%M-%S")
-    infrags_path = "infragsmgr/data/infrags.json"
+    infrags_path = "infrags_mgr/data/infrags.json"
     if (get_is_local() == False):
         infrags_path = "/gcs/voiceagent/infrags.json"
     infrags_backup_path = infrags_path + f".{ts}.bak"
@@ -186,8 +220,7 @@ def post_infrags(file: UploadFile = File(...)):
         media_type="application/json; charset=utf-8"
     )
 
-# TODO: add reload infrags api
-@fast_api_app.get("/reload-infrags")
+@fast_api_app.get("/v2/infrags/reload")
 def reload_infrags():
     InfragStore.reload_infrags
     return JSONResponse(
@@ -195,8 +228,105 @@ def reload_infrags():
         media_type="application/json; charset=utf-8"
     )
 
-# "/ask" POST mapping"
-@fast_api_app.post("/ask")
+@fast_api_app.put("/v2/infrags/{infrag_id}")
+def update_infrag(infrag_id: str, query: UpdateInfragQuery):
+    try:
+        # Vérifier que l'ID correspond
+        if infrag_id != query.infrag_id:
+            raise HTTPException(status_code=400, detail="ID mismatch")
+
+        # Appeler la méthode update_infrag du store
+        success = infrag_store.update_infrag(
+            infrag_id=query.infrag_id,
+            user_id=query.user_id,
+            user_context=query.user_context,
+            new_text=query.new_text
+        )
+
+        if success:
+            return {"text": "Fragment mis à jour avec succès!"}
+        else:
+            raise HTTPException(status_code=404, detail="Fragment non trouvé")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
+
+@fast_api_app.delete("/v2/infrags/{infrag_id}")
+def delete_infrag(infrag_id: str, user_id: str, user_context: str):
+    try:
+        #user_id = request.args.get('user_id')
+        #user_context = request.args.get('user_context')
+        # Appeler la méthode delete_infrag du store
+        #print(f"Deleting infrag with ID: {infrag_id}, user_id: {user_id}, user_context: {user_context}")
+        success = infrag_store.delete_infrag(
+            infrag_id=infrag_id,
+            user_id=user_id,
+            user_context=user_context
+        )
+        if success:
+            return {"text": "Fragment supprimé avec succès!"}
+        else:
+            raise HTTPException(status_code=404, detail="Fragment non trouvé")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression: {str(e)}")
+
+@fast_api_app.get("/v2/infrags/detailed")
+def get_infrags_detailed(user_id: str = None, user_context: str = None):
+    try:
+        # Appeler une méthode pour récupérer les fragments avec filtres
+        infrags = infrag_store.get_infrags_filtered(user_id=user_id, user_context=user_context)
+        return JSONResponse(
+            content={"infrags": infrags},
+            media_type="application/json; charset=utf-8"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération: {str(e)}")
+
+# "/ask-llm" POST mapping
+@fast_api_app.post("/v2/ask-llm")
+def askLLM(query: LLMQuery):
+    print("starting REST service ask-llm")
+    response = "je ne sais rien, mais je dirai tout"
+    response = chatbot.askLLM(
+        query.user_id,
+        query.instructions,
+        query.request,
+    )
+    return JSONResponse(
+        content={ "text": response },
+        media_type="application/json; charset=utf-8"
+    )
+
+# "/ask-llm-providing-infrags" POST mapping
+@fast_api_app.post("/v2/ask-llm-providing-infrags")
+def askLLMProvidingInfrags(query: LLMProvidingInfragsQuery):
+    print("starting REST service ask-llm-providing-infrags")
+    response = "je ne sais rien, mais je dirai tout"
+    infrags = infrag_store.search_infrags(
+        query.user_id,
+        query.user_context,
+        query.request
+    )
+    context = "\n".join(
+      [f"- {m['text']} (socké le {m['storage_date']})" for m in infrags]
+    )
+    instructions = query.instructions
+    instructions += f"\nVoici les éléments d'information pertinents :\n{context}"
+    response = chatbot.queryInfrags(
+        query.request,
+        query.instructions,
+        infrags
+    )
+    return JSONResponse(
+        content={ "text": response },
+        media_type="application/json; charset=utf-8"
+    )
+
+# endregion
+
+# region "v1"
+
+@fast_api_app.post("/v1/ask")
 def askV1(query: Query):
     response = "je sais pas"
     question = query.text
@@ -208,14 +338,12 @@ def askV1(query: Query):
         media_type="application/json; charset=utf-8"
     )
 
-# "/store" POST mapping
-@fast_api_app.post("/store")
+@fast_api_app.post("v1/store")
 def add_memory(query: Query):
     ts = datetime.now().strftime("%Y-%m-%d")
     store.add_memory(query.text, ts) # add user_id and user_context
     return {"text": "Memory added successfully!"}
 
-# "/v2/ask" POST mapping
 @fast_api_app.post("/v2/ask")
 def askV2(query: AskQuery):
     print("starting ask V2")
@@ -248,29 +376,21 @@ def askV2(query: AskQuery):
         media_type="application/json; charset=utf-8"
     )
 
-# "/v2/store" POST mapping
-@fast_api_app.post("/v2/store")
-def add_infrag(query: StoreQuery):
-    # create a timestamp with the current date
-    ts = datetime.now().strftime("%Y-%m-%d")
-    # call the add_infrag of the infrag_store object with the user_id, user_context, infrag (infomation fragment) and a timestamp
-    infrag_store.add_infrag(
-        user_id=query.user_id,
-        user_context=query.user_context,
-        text=query.infrag,
-        date=ts
-    )
-    return {"text": "Information fragment added successfully!"}
+# endregion
 
-# "/text-to-speech" POST mapping (returns mp3)
+# region "Speech to Text and Text to Speech"
+
 @fast_api_app.post("/text-to-speech")
 def tts_gtts(query: Query):
+    print("starting REST service text-to-speech")
     ts = datetime.now().strftime("%Y-%m-%d@%H-%M-%S")
     upload_dir = "uploaded_files"
     os.makedirs(upload_dir, exist_ok=True)
     file_path = os.path.join(upload_dir, f"response_{ts}.mp3")
     tts = gTTS(query.text, lang='fr')
     tts.save(file_path)
+    size_in_bytes = os.path.getsize(file_path)
+    print(f"File saved at {file_path} with size {size_in_bytes} bytes")
     return FileResponse(file_path, media_type='audio/mpeg')
 
 # "/speech-to-text URL mapping (returns text in JSON)
@@ -302,45 +422,9 @@ def stt(file: UploadFile = File(...)):
         text = f"Error saving file: {e}"
     return {"text": text}
 
-# "/ask-llm" POST mapping
-@fast_api_app.post("/ask-llm")
-def askLLM(query: LLMQuery):
-    print("starting REST service ask-llm")
-    response = "je ne sais rien, mais je dirai tout"
-    response = chatbot.askLLM(
-        query.user_id,
-        query.instructions,
-        query.request,
-    )
-    return JSONResponse(
-        content={ "text": response },
-        media_type="application/json; charset=utf-8"
-    )
+# endregion
 
-# "/ask-llm-providing-infrags" POST mapping
-@fast_api_app.post("/ask-llm-providing-infrags")
-def askLLMProvidingInfrags(query: LLMProvidingInfragsQuery):
-    print("starting REST service ask-llm-providing-infrags")
-    response = "je ne sais rien, mais je dirai tout"
-    infrags = infrag_store.search_infrags(
-        query.user_id,
-        query.user_context,
-        query.request
-    )
-    context = "\n".join(
-      [f"- {m['text']} (socké le {m['storage_date']})" for m in infrags]
-    )
-    instructions = query.instructions
-    instructions += f"\nVoici les éléments d'information pertinents :\n{context}"
-    response = chatbot.queryInfrags(
-        query.request,
-        query.instructions,
-        infrags
-    )
-    return JSONResponse(
-        content={ "text": response },
-        media_type="application/json; charset=utf-8"
-    )
+# endregion
 
 # if python script is run directly, run the following code
 if __name__ == "__main__":

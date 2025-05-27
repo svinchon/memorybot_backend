@@ -2,14 +2,14 @@ import json
 import faiss
 import os
 import numpy as np
-from infragsmgr.embedder import Embedder # vectorization lib
+from infrags_mgr.embedder import Embedder # vectorization lib
 
 class MemoryStore:
 
     def __init__(
         self,
-        json_path="infragsmgr/data/memories.json",
-        index_path="infragsmgr/data/index.faiss"
+        json_path="infrags_mgr/data/memories.json",
+        index_path="infrags_mgr/data/index.faiss"
     ):
         self.json_path = json_path
         self.index_path = index_path
