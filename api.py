@@ -10,7 +10,7 @@ from http.client import HTTPException
 import re
 
 # fastapi libraries
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -53,11 +53,14 @@ async def get_web_interface():
 
 class Query(BaseModel):
     text: str
+    language: str
+    voice_type: str
 
 class StoreInfragQuery(BaseModel):
     user_id: str
     user_context: str
     infrag: str
+    language: str
 
 class UpdateInfragQuery(BaseModel):
     user_id: str
@@ -80,12 +83,14 @@ class LLMQuery(BaseModel):
     user_id: str
     instructions: str
     request: str
+    language: str
 
 class LLMProvidingInfragsQuery(BaseModel):
     user_id: str
     user_context:  str
     instructions: str
     request: str
+    language: str
 
 # endregion
 
@@ -291,6 +296,7 @@ def askLLM(query: LLMQuery):
         query.user_id,
         query.instructions,
         query.request,
+        query.language,
     )
     return JSONResponse(
         content={ "text": response },
@@ -305,7 +311,8 @@ def askLLMProvidingInfrags(query: LLMProvidingInfragsQuery):
     infrags = infrag_store.search_infrags(
         query.user_id,
         query.user_context,
-        query.request
+        query.request,
+        query.language,
     )
     context = "\n".join(
       [f"- {m['text']} (socké le {m['storage_date']})" for m in infrags]
@@ -315,7 +322,8 @@ def askLLMProvidingInfrags(query: LLMProvidingInfragsQuery):
     response = chatbot.queryInfrags(
         query.request,
         query.instructions,
-        infrags
+        infrags,
+        language=query.language
     )
     return JSONResponse(
         content={ "text": response },
@@ -358,7 +366,8 @@ def askV2(query: AskQuery):
     infrags = infrag_store.search_infrags(
         query.user_id,
         query.user_context,
-        query.question
+        query.question,
+        query.language,
     )
     # call the queryInfrags method of the chatbot object
     # with the question, instructions and the list of information fragments
@@ -367,7 +376,8 @@ def askV2(query: AskQuery):
     response = chatbot.queryInfrags(
         query.question,
         query.instructions,
-        infrags
+        infrags,
+        query.language
     )
     # return the answer to the question in a JSON object looking like {"text": "ceci est un test"}
     responseJson = {"text": response}
@@ -383,6 +393,7 @@ def askV2(query: AskQuery):
 @fast_api_app.post("/text-to-speech")
 def tts_gtts(query: Query):
     print("starting REST service text-to-speech")
+    print("language: ", query.language)
     ts = datetime.now().strftime("%Y-%m-%d@%H-%M-%S")
     upload_dir = "uploaded_files"
     os.makedirs(upload_dir, exist_ok=True)
@@ -395,7 +406,12 @@ def tts_gtts(query: Query):
 
 # "/speech-to-text URL mapping (returns text in JSON)
 @fast_api_app.post("/speech-to-text")
-def stt(file: UploadFile = File(...)):
+def stt(
+    file: UploadFile = File(...),
+    language: str = Form(...)
+):
+    print("starting REST service speech-to-text")
+    print("language: ", language)
     text = ""
     try:
         ts = datetime.now().strftime("%Y-%m-%d@%H-%M-%S")

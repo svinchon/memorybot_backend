@@ -74,7 +74,7 @@ class InfragStore:
             self.id_map.append(mem["id"])
         self.index.add(np.array(vectors).astype("float32"))
 
-    def search_infrags(self, user_id, user_context, query, k=10):
+    def search_infrags(self, user_id, user_context, query, language, k=10):
         filtered_infrags = [
             infrag
             for infrag in self.infrags

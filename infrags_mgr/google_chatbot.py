@@ -59,10 +59,12 @@ class GoogleChatbot:
     self,
     question,
     instructions,
-    infrags
+    infrags,
+    language,
   ):
     print("starting chatbot queryInfrags")
     print("chatbot is: "+self.llm)
+    print("language: "+language)
     print("question to chatbot: "+question)
     # concatenate the information fragments into a single string
     context = "\n".join(
@@ -92,9 +94,10 @@ class GoogleChatbot:
     return response
 
   # this method is generic to invoke chat gpt
-  def askLLM(self, user_id, instructions, request):
+  def askLLM(self, user_id, instructions, request, language):
     print("starting chatbot ask-llm")
     print("chatbot is: "+self.llm)
+    print("language: "+language)
     print("question to chatbot ask-llm: "+request)
     prompt = f"{instructions}\n{request}"
     generation_config = genai.types.GenerationConfig(temperature=0.7)
