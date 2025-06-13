@@ -53,14 +53,14 @@ async def get_web_interface():
 
 class Query(BaseModel):
     text: str
-    language: str
+    language: str = "fr-FR"
     voice_type: str
 
 class StoreInfragQuery(BaseModel):
     user_id: str
     user_context: str
     infrag: str
-    language: str
+    language: str = "fr-FR"
 
 class UpdateInfragQuery(BaseModel):
     user_id: str
@@ -81,16 +81,16 @@ class AskQuery(BaseModel):
 
 class LLMQuery(BaseModel):
     user_id: str
-    instructions: str
+    instructions: str = ""
     request: str
-    language: str
+    language: str = "fr-FR"
 
 class LLMProvidingInfragsQuery(BaseModel):
     user_id: str
     user_context:  str
-    instructions: str
+    instructions: str = ""
     request: str
-    language: str
+    language: str = "fr-FR"
 
 # endregion
 
@@ -247,6 +247,8 @@ def update_infrag(infrag_id: str, query: UpdateInfragQuery):
             user_context=query.user_context,
             new_text=query.new_text
         )
+        infrag_store.reload_infrags()
+        infrag_store.rebuild_index()
 
         if success:
             return {"text": "Fragment mis à jour avec succès!"}
@@ -291,7 +293,10 @@ def get_infrags_detailed(user_id: str = None, user_context: str = None):
 @fast_api_app.post("/v2/ask-llm")
 def askLLM(query: LLMQuery):
     print("starting REST service ask-llm")
+    print(f"language: {query.language}")
     response = "je ne sais rien, mais je dirai tout"
+    if query.language == "en-US":
+        query.instructions += "\nPlease answer in English."
     response = chatbot.askLLM(
         query.user_id,
         query.instructions,
@@ -319,12 +324,15 @@ def askLLMProvidingInfrags(query: LLMProvidingInfragsQuery):
     )
     instructions = query.instructions
     instructions += f"\nVoici les éléments d'information pertinents :\n{context}"
+    if (query.language == "en-US"):
+        instructions += f"\nPlease answer in English."
     response = chatbot.queryInfrags(
         query.request,
-        query.instructions,
+        instructions,
         infrags,
         language=query.language
     )
+    response = response.replace("**", "")
     return JSONResponse(
         content={ "text": response },
         media_type="application/json; charset=utf-8"
@@ -398,7 +406,7 @@ def tts_gtts(query: Query):
     upload_dir = "uploaded_files"
     os.makedirs(upload_dir, exist_ok=True)
     file_path = os.path.join(upload_dir, f"response_{ts}.mp3")
-    tts = gTTS(query.text, lang='fr')
+    tts = gTTS(query.text, lang=query.language, slow=False)
     tts.save(file_path)
     size_in_bytes = os.path.getsize(file_path)
     print(f"File saved at {file_path} with size {size_in_bytes} bytes")
@@ -429,7 +437,9 @@ def stt(
         recognizer = sr.Recognizer()
         with sr.AudioFile(file_path) as source:
             audio = recognizer.record(source)
-        text = recognizer.recognize_google(audio, language="fr-FR")
+        text = recognizer.recognize_google(
+            audio, language=language
+        )
     except sr.UnknownValueError:
         text = "Could not understand the audio."
     except sr.RequestError as e:
