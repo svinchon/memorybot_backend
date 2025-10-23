@@ -22,6 +22,13 @@ CURL_TARGET_URL=http://0.0.0.0:8000
 # CURL_TARGET_URL=https://secret-box-456003509969.europe-west1.run.app/
 #
 ################################################################################
+# venv
+################################################################################
+#
+venv_activate:
+	source .venv/bin/activate
+#
+################################################################################
 # unicorn
 ################################################################################
 #
@@ -139,6 +146,9 @@ curl_ask_v2_svinchon:
 #
 curl_debug:
 	curl http://0.0.0.0:8000/debug
+#
+curl_config:
+	curl http://0.0.0.0:8000/config
 #
 curl_get_infrags:
 	curl http://0.0.0.0:8000/infrags
@@ -273,3 +283,7 @@ gcp_set_service_timeout:
 	--timeout=900 \
 	--region=${GCP_REG}
 #
+gcp_service_set_min_instances_0:
+	gcloud run services update ${IM_NAME} \
+	--min-instances 0 \
+	--region ${GCP_REG}

@@ -1,0 +1,37 @@
+{
+	"profiles": [
+		{
+			"profile_name": "p1",
+			"isActive": true,
+			"userId": "svinchon@gmail.com",
+			"userContexts": ["memories", "ideas", "thoughts", "actions"],
+			"serverUrl": "http://10.0.2.2:8000",
+			"appTitle": "--NA--",
+			"language": "fr-FR",
+			"voiceType": "",
+			"llmInstructions": "",
+			"notes": "",
+			"contacts": [
+				{
+					"contactNickname": "bob",
+					"contactEmail": "",
+					"contactMobile": ""
+				}
+			]
+		},
+		{
+			"profile_name": "p2",
+			"isActive": false,
+			"userId": "svinchon@gmail.com",
+			"userContexts": ["memories"],
+			"serverUrl": "https://TOBEREPLACED",
+			"appTitle": "Cloud FR",
+			"language": "en-US",
+			"voiceType": "",
+			"llmInstructions": "",
+			"notes": "",
+			"contacts": [
+			]
+		}
+	]
+}

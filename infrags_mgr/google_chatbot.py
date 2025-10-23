@@ -13,7 +13,8 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 # fragments and questions.
 class GoogleChatbot:
 
-  def __init__(self, model_name="gemini-1.5-flash"): # Modèle Gemini par défaut
+  #def __init__(self, model_name="gemini-1.5-flash"): # Modèle Gemini par défaut
+  def __init__(self, model_name="gemini-2.0-flash"): # Modèle Gemini par défaut
     self.model = genai.GenerativeModel(model_name)
     self.llm = "Google"
 

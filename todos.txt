@@ -1,0 +1,6 @@
+- Verify GOOGLE_API_KEY origin
+- Test advanced TTS with gender selection
+- Verify no impact of venv on dockerization
+- Create new intermediate image with additional libraires
+- Add API to save config
+- Verify consumption

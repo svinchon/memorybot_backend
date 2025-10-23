@@ -74,7 +74,7 @@ class InfragStore:
             self.id_map.append(mem["id"])
         self.index.add(np.array(vectors).astype("float32"))
 
-    def search_infrags(self, user_id, user_context, query, language, k=10):
+    def search_infrags(self, user_id, user_context, query, language, k=15):
         filtered_infrags = [
             infrag
             for infrag in self.infrags
@@ -92,8 +92,14 @@ class InfragStore:
             temp_id_map.append(i)
         temp_index.add(np.array(vectors).astype("float32"))
         vec = self.embedder.embed(query)
-        D, I = temp_index.search(np.array([vec]).astype("float32"), k)
-        return [filtered_infrags[temp_id_map[i]] for i in I[0]]
+        D, I = temp_index.search(np.array([vec]).astype("float32"), 10)
+        print(I)
+        data = [filtered_infrags[temp_id_map[i]] for i in I[0]]
+        print(data)
+        unique = {item["id"]: item for item in data}.values()
+        print(list(unique))
+        #return data
+        return list(unique)
 
     def reload_infrags(self):
         self.infrags = self.load_infrags()

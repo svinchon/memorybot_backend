@@ -189,5 +189,26 @@
     "text": "My sister Mariana was considered as the most lever of the family. She was very good at school, and she studied in Paris at H E C",
     "storage_date": "2025-06-13",
     "modified_date": "2025-06-13"
+  },
+  {
+    "id": 26,
+    "user_id": "svinchon@gmail.com",
+    "user_context": "notes",
+    "text": "je dois aller chez le dentiste dans 3 jours",
+    "storage_date": "2025-10-15"
+  },
+  {
+    "id": 27,
+    "user_id": "svinchon@gmail.com",
+    "user_context": "idées",
+    "text": "il faut que je donne des instructions plus précises au LLM",
+    "storage_date": "2025-10-15"
+  },
+  {
+    "id": 28,
+    "user_id": "svinchon@gmail.com",
+    "user_context": "souvenirs",
+    "text": "j'ai 5 sœurs et trois frères",
+    "storage_date": "2025-10-15"
   }
 ]

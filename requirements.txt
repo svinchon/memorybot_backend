@@ -12,3 +12,4 @@ dotenv
 hf_xet
 google-cloud-storage
 google-generativeai
+google-cloud-texttospeech

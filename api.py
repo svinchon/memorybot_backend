@@ -178,6 +178,17 @@ def debug():
         "llm": chatbot.llm
     }
 
+@fast_api_app.get("/config")
+def get_config():
+    file_path = "data/config.json"
+    with open(file_path, "r") as file:
+        file_content = file.read()
+        file_content_json = json.loads(file_content)
+    return JSONResponse(
+        content={"config": file_content_json},
+        media_type="application/json; charset=utf-8"
+    )
+
 # endregion
 
 # region "v2"
@@ -320,10 +331,11 @@ def askLLMProvidingInfrags(query: LLMProvidingInfragsQuery):
         query.language,
     )
     context = "\n".join(
-      [f"- {m['text']} (socké le {m['storage_date']})" for m in infrags]
+      [f"- {m['text']} (stocké le {m['storage_date']})" for m in infrags]
     )
     instructions = query.instructions
     instructions += f"\nVoici les éléments d'information pertinents :\n{context}"
+    print(instructions)
     if (query.language == "en-US"):
         instructions += f"\nPlease answer in English."
     response = chatbot.queryInfrags(
